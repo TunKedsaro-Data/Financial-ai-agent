@@ -1,32 +1,32 @@
-from fastapi import FastAPI
-
 from contextlib import asynccontextmanager
-
+from fastapi import FastAPI
 from business_analyst.core.config import Settings
 from business_analyst.db.migrations import apply_migrations
 
-settings = Settings.from_env()
+# create FastAPI app with any input setting
+def create_app(settings: Settings) -> FastAPI:
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        apply_migrations(
+            settings.database_path,
+            settings.migrations_path,
+        )
+        yield
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # apply migration
-    apply_migrations(
-        settings.database_path,
-        settings.migrations_path
+    app = FastAPI(
+        title=settings.app_name,
+        version=settings.version,
+        lifespan=lifespan,
     )
-    yield
+    @app.get("/api/health")
+    def health():
+        return {
+            "status": "ok",
+            "service": settings.app_name,
+            "version": settings.version,
+        }
+    return app
 
 
-app = FastAPI(
-    title=settings.app_name,
-    version=settings.version,
-    lifespan=lifespan
-)
-
-@app.get("/api/health")
-def health():
-    return {
-        "status": "ok",
-        "service": settings.app_name,
-        "version": settings.version
-    }
+settings = Settings.from_env()
+app = create_app(settings)
