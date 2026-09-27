@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from business_analyst.core.config import Settings
-from business_analyst.db.migrations import apply_migrations
+from business_analyst.db.migrations import apply_migrations, migration_count
 
 # create FastAPI app with any input setting
 def create_app(settings: Settings) -> FastAPI:
@@ -24,6 +24,8 @@ def create_app(settings: Settings) -> FastAPI:
             "status": "ok",
             "service": settings.app_name,
             "version": settings.version,
+            "database": "ready",
+            "migrations": migration_count(settings.database_path)
         }
     return app
 

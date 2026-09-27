@@ -20,6 +20,8 @@ def test_health_endpoint(tmp_path: Path):
         "status": "ok",
         "service": "Financial AI Agent",
         "version": "0.1.0",
+        "database": "ready",
+        "migrations": 1,
     }
 
 
